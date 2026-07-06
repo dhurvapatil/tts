@@ -1,0 +1,39 @@
+# review-only.yaml
+#
+# Variation: no implementation, no test runs — just a review pass.
+# Useful for audit/inspection tasks where the agent should read code
+# and report on its quality/security/correctness.
+
+name: review-only
+description: |
+  Single-pass code review. No edits, no test runs. The reviewer agent
+  reads the codebase and reports findings.
+
+objective: |
+  The reviewer produces a structured report describing the current state
+  of the codebase: what it does, what works, what doesn't, and what
+  should be changed. The orchestrator stops after one iteration.
+
+stopRules:
+  maxIterations: 1
+  maxDurationMinutes: 20
+  noProgressLimit: 1
+  verifyCommand: 'echo review-only: no verification'  # always passes
+  verifyTimeoutMs: 5000
+
+fanOut:
+  - role: reviewer
+    count: 1
+    task: |
+      You are the reviewer in a review-only loop.
+
+      Objective: {{objective}}
+
+      Audit the codebase:
+      1. What does this project do? (one paragraph)
+      2. What's the overall structure? (key directories and their roles)
+      3. What are the most concerning issues? (correctness, security, performance, maintainability)
+      4. What are the top 3-5 things the team should change first?
+
+      Use bash/grep/find/read to explore. Produce the structured verdict block
+      at the end with VERDICT: APPROVE (or BLOCK if you find critical issues).

@@ -1,0 +1,61 @@
+# build-fix.yaml
+#
+# Default build/test/fix loop. Spawns one implementer, one tester, and one
+# reviewer per iteration, in sequence. Stops when the verification command
+# exits 0 (or the stop rules kick in).
+#
+# Use with:  loop_start(blueprintPath: "loops/build-fix.yaml")
+# Or:        loop_design + loop_start to override the verify command etc.
+
+name: build-fix
+description: |
+  Default loop. Get the project's test suite to green, with a human-quality
+  review on each iteration.
+
+objective: |
+  The verification command exits 0 with no failures, and the reviewer
+  reports VERDICT: APPROVE with no blocking issues.
+
+stopRules:
+  maxIterations: 8
+  maxDurationMinutes: 30
+  noProgressLimit: 3       # stop if the same failure repeats 3x in a row
+  verifyCommand: npm test  # the loop designer will auto-detect for your project
+  verifyTimeoutMs: 180000  # 3 minutes
+
+# --- Fan-out: each step runs sequentially; count>1 means parallel variants ---
+fanOut:
+  - role: implementer
+    count: 1
+    task: |
+      You are the implementer in iteration {{attempt}} of a build/test/fix loop.
+
+      Objective: {{objective}}
+      {{#if focus}}This iteration's focus: {{focus}}{{/if}}
+      {{#if lastReports}}Last iteration's reports: {{lastReports}}{{/if}}
+      {{#if lastVerification}}Last verification: {{lastVerification}}{{/if}}
+
+      Read the failing test output (or focus hint) and make a targeted fix.
+      Use the edit/write tools. End with the structured summary block.
+
+  - role: tester
+    count: 1
+    task: |
+      You are the tester in iteration {{attempt}}.
+
+      Objective: {{objective}}
+      {{#if lastReports}}Last iteration's reports (for context): {{lastReports}}{{/if}}
+
+      Run `{{verifyCommand}}` and produce the structured report. Do not modify code.
+
+  - role: reviewer
+    count: 1
+    task: |
+      You are the reviewer in iteration {{attempt}}.
+
+      Objective: {{objective}}
+      {{#if lastReports}}Implementer's report: {{lastReports}}{{/if}}
+
+      Run `git diff` to see the implementer's changes. Verify they move toward
+      the objective without security issues, scope creep, or obvious bugs.
+      Produce the structured verdict block.

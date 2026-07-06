@@ -1,0 +1,29 @@
+[project]
+name = "kokoro-tts-cli"
+version = "0.1.0"
+description = "Local Kokoro-82M ONNX TTS CLI with streaming, persistent AudioSink, and TTFW regression harness"
+requires-python = ">=3.11"
+dependencies = [
+    "kokoro-onnx>=0.5.0",
+    # onnxruntime-gpu with CUDA + cuDNN extras pulls in the matching
+    # nvidia-cuda-runtime-cu12, nvidia-cudnn-cu12, nvidia-cublas-cu12, etc.
+    # Pip packages so we don't need a system CUDA install.
+    # If you only want CPU, swap this for:  "onnxruntime>=1.18.0"
+    "onnxruntime-gpu[cuda,cudnn]>=1.26.0,<1.27.0",
+    "numpy>=1.24",
+    "psutil>=5.9",
+    # sounddevice (PortAudio binding) is the primary audio backend.
+    # On Windows the wheel usually bundles the PortAudio DLL; on Linux/macOS
+    # you may need:  apt install libportaudio2  /  brew install portaudio
+    "sounddevice>=0.4.7",
+    # nvidia-ml-py is the canonical name for the pynvml package
+    # (pynvml is deprecated as of 2024 and prints a FutureWarning on
+    # import).  Same API: nvmlInit / nvmlDeviceGetHandleByIndex / etc.
+    # onnxruntime-gpu[cuda,cudnn] already pulls it in transitively; we
+    # list it explicitly so the deprecation warning stays gone even if
+    # the ORT extra version changes.
+    "nvidia-ml-py>=0.1",
+]
+
+[tool.uv]
+package = false

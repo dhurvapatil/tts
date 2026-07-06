@@ -1,0 +1,61 @@
+# parallel-implementers.yaml
+#
+# Variation: spawn 3 implementer variants in parallel, then a single tester
+# and reviewer. The tester sees all three implementations and runs the
+# test suite against the *current* working tree.
+#
+# Note: in this simple orchestrator, only the LAST variant's edits are
+# visible to the tester, because all three variants are working in the
+# same cwd. For a real "try all three" workflow, you'd want git worktrees
+# (not yet implemented — see the design notes in README.md).
+
+name: parallel-implementers
+description: |
+  Spawn 3 implementer variants in parallel, then test, then review. Use when
+  you're not sure which approach will work and want to explore.
+
+objective: |
+  The verification command exits 0 with no failures, and the reviewer
+  reports VERDICT: APPROVE with no blocking issues.
+
+stopRules:
+  maxIterations: 6
+  maxDurationMinutes: 45
+  noProgressLimit: 3
+  verifyCommand: npm test
+  verifyTimeoutMs: 180000
+
+fanOut:
+  - role: implementer
+    count: 3
+    task: |
+      You are implementer variant {{variant}} of {{count}} in iteration {{attempt}}.
+
+      Your mandate: try a MEANINGFULLY DIFFERENT approach than the other variants.
+      {{#if focus}}Focus: {{focus}}{{/if}}
+      {{#if lastReports}}Last iteration's reports: {{lastReports}}{{/if}}
+      {{#if lastVerification}}Last verification: {{lastVerification}}{{/if}}
+
+      Read the failing test output and try something different. End with
+      the structured summary block, noting how your approach differs.
+
+  - role: tester
+    count: 1
+    task: |
+      You are the tester in iteration {{attempt}}.
+
+      Objective: {{objective}}
+      {{#if lastReports}}Last iteration's reports (note: variants' edits all landed on the same tree): {{lastReports}}{{/if}}
+
+      Run `{{verifyCommand}}` and produce the structured report. Do not modify code.
+
+  - role: reviewer
+    count: 1
+    task: |
+      You are the reviewer in iteration {{attempt}}.
+
+      Objective: {{objective}}
+      {{#if lastReports}}Implementer reports: {{lastReports}}{{/if}}
+
+      Run `git diff` to see all the implementer variants' combined changes.
+      Look for inconsistencies between variants. Produce the structured verdict.

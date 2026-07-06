@@ -1,0 +1,5 @@
+node_modules/
+*.log
+.DS_Store
+# Loop state files (user's own, not source)
+# Don't commit .pi/loops/ state files.
