@@ -1,6 +1,6 @@
 import os, time, statistics
 from pathlib import Path
-_R = Path("C:/Users/workspace/voice_agnet")
+_R = Path(__file__).resolve().parent
 _n = _R / ".venv" / "Lib" / "site-packages" / "nvidia"
 if _n.exists():
     _ex = [str(d.resolve()) for d in sorted(_n.glob("*/bin")) if d.is_dir()]
